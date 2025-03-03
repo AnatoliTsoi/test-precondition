@@ -1,0 +1,17 @@
+{
+  "name": "test-precondition",
+  "version": "1.0.0",
+  "description": "test-precondition is a service for satisfying preconditions for different test scenarios",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "pg": "^8.13.3"
+  }
+}
