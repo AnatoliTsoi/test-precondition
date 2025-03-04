@@ -1,15 +1,13 @@
-import express, { Request, Response } from "express";
-import dotenv from "dotenv"
+import express from "express";
+import userRoutes from "./routes/userRoutes";
 
-//here we configure the app
+const app = express();
 
-dotenv.config()
-const app = express()
-
-
-app.get("/", (req: Request, res: Response) => {
-    res.send("Precondition server is running");
-});
+app.use(express.json());
+app.use(userRoutes);
 
 
 export default app;
+
+
+

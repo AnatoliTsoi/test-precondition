@@ -11,12 +11,14 @@ export async function up(knex: Knex): Promise<void> {
         table.string("address");
         table.string("zip_code");
         table.string("city");
-        table.string("password");
+        table.string("password").defaultTo("Sample123!");
         table.string("email").notNullable();
         table.string("phone_number").notNullable();
-        table.string("country_code");
+        table.string("country_code").notNullable();
         table.string("country");
         table.string("member_id");
+        table.boolean("reserved").defaultTo(false);
+        table.boolean("registered").defaultTo(false);
     });
 }
 
