@@ -4,7 +4,7 @@
   "description": "test-precondition is a service for satisfying preconditions for different test scenarios",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "ts-node src/index.ts"
@@ -19,13 +19,18 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "pg": "^8.13.3",
-    "reflect-metadata": "^0.2.2"
+    "reflect-metadata": "^0.2.2",
+    "supertest": "^7.0.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
+    "@types/jest": "^29.5.14",
     "@types/node": "^22.13.8",
     "@types/pg": "^8.11.11",
+    "@types/supertest": "^6.0.2",
+    "jest": "^29.7.0",
     "knex": "^3.1.0",
+    "ts-jest": "^29.2.6",
     "typescript": "^5.8.2"
   },
   "engines": {

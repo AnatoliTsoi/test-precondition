@@ -4,6 +4,7 @@
     "emitDecoratorMetadata": true,
     "target": "ES6",
     "module": "commonjs",
+    "sourceMap": true,
     "outDir": "./dist",
     "rootDir": "./",
     "esModuleInterop": true,
@@ -13,6 +14,7 @@
   },
   "include": [
     "src/**/*",
+    "tests/**/*",
     "knexfile.ts"
   ],
   "exclude": ["node_modules"]
