@@ -9,7 +9,7 @@ export const OmniService = {
             lastName: user.last_name,
             gender: user.gender,
             language: "EN",
-            dateOfBirth: user.birth_date ? user.birth_date.toISOString() : null,
+            dateOfBirth: user.birth_date,
             phoneNumber: user.phone_number,
             emailAddress: user.email,
             address: user.address,
