@@ -1,7 +1,20 @@
 import request from 'supertest';
 import app from '../../src/app';
+import {insertDefaultUser, insertLockedUser, setupDatabase, teardownDatabase} from '../../src/utils/database';
+
+beforeAll(async () => {
+    await setupDatabase();
+});
+
+afterAll(async () => {
+    await teardownDatabase();
+});
 
 describe('GET/user registered=false returns 200', () => {
+    beforeEach(async () => {
+        await insertDefaultUser();
+    });
+
     it('should respond with a 200 status code', async () => {
         const response = await request(app).get('/user?registered=false');
         expect(response.status).toBe(200);
@@ -25,10 +38,14 @@ describe('GET/user registered=false returns 200', () => {
 });
 
 describe('PUT/user/unlock changes user state', () => {
-    it('should respond with a 200 status code', async () => {
+    beforeEach(async () => {
+        await insertLockedUser();
+    });
+
+    it('should respond with a 204 status code', async () => {
         const response = await request(app)
             .put('/user/unlock')
-            .send({email: "a7b73-8a6d-4320-a87f-ce4e7eb066a1@mailslurp.net"});
+            .send({ email: "integration-tests@test-precondition.se" });
 
         expect(response.status).toBe(204);
     });

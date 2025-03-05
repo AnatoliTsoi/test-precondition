@@ -59,7 +59,7 @@ export async function unlockUserHandler(
 
         await userService.unlockUser(user.id);
 
-        res.status(204);
+        res.status(204).send();
     } catch (error) {
         next(error);
     }
