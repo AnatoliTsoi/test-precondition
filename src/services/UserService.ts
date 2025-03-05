@@ -25,6 +25,15 @@ export class UserService {
         return user;
     }
 
+    async unlockUser(userId: number): Promise<User> {
+        const [user] = await knex("users")
+            .where({id: userId})
+            .update({reserved: false})
+            .returning("*");
+
+        return user;
+    }
+
     async getUserByEmail(email: string): Promise<User | null> {
         const [user] = await knex("users").where({ email });
         return user || null;

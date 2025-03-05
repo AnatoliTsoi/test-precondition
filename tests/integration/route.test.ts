@@ -1,7 +1,7 @@
 import request from 'supertest';
 import app from '../../src/app';
 
-describe('/user registered=false returns 200', () => {
+describe('GET/user registered=false returns 200', () => {
     it('should respond with a 200 status code', async () => {
         const response = await request(app).get('/user?registered=false');
         expect(response.status).toBe(200);
@@ -21,6 +21,15 @@ describe('/user registered=false returns 200', () => {
         expect(user).toHaveProperty('country');
         expect(user).toHaveProperty('reserved', true);
         expect(user).toHaveProperty('registered', false);
+    });
+});
 
+describe('PUT/user/unlock changes user state', () => {
+    it('should respond with a 200 status code', async () => {
+        const response = await request(app)
+            .put('/user/unlock')
+            .send({email: "a7b73-8a6d-4320-a87f-ce4e7eb066a1@mailslurp.net"});
+
+        expect(response.status).toBe(204);
     });
 });

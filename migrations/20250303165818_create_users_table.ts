@@ -6,7 +6,7 @@ export async function up(knex: Knex): Promise<void> {
         table.increments("id").primary();
         table.string("first_name");
         table.string("last_name");
-        table.date("birth_date");
+        table.string("birth_date");
         table.string("gender");
         table.string("address");
         table.string("zip_code");

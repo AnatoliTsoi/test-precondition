@@ -37,3 +37,30 @@ export async function getUserHandler(
         next(error);
     }
 }
+
+export async function unlockUserHandler(
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> {
+    try {
+        const { email } = req.body;
+
+        if (!email || typeof email !== "string") {
+            res.status(400).json({ message: "Email query parameter of string is required" });
+            return
+        }
+        let user: User | null = await userService.getUserByEmail(email);
+
+        if (!user?.reserved) {
+            res.status(400).json({ message: "User is not reserved" });
+            return
+        }
+
+        await userService.unlockUser(user.id);
+
+        res.status(204);
+    } catch (error) {
+        next(error);
+    }
+}
