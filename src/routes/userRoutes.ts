@@ -3,9 +3,9 @@ import {getUserHandler, registerUserHandler, removeUserHandler, unlockUserHandle
 
 const router = Router();
 
-router.get("/user/data", getUserHandler);
+router.patch("/user/data", getUserHandler);
 router.patch("/user/unlock", unlockUserHandler);
-router.get("/user/registered", registerUserHandler);
+router.post("/user/registered", registerUserHandler);
 router.delete("/user", removeUserHandler); //change
 
 

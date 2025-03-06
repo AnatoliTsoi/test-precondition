@@ -42,6 +42,7 @@ export async function registerUserHandler(
         let user: User | null = await userService.getAvailableUser();
 
         if (!user) {
+            logger.warn("No users available");
             res.status(404).json({message: "No users available"});
             return;
         }
@@ -53,7 +54,7 @@ export async function registerUserHandler(
         const omniResponse = await OmniService.signUp(user, redCarpetConsent);
         user = await userService.updateUser(user.id, {registered: true});
 
-        res.status(200).json(user);
+        res.status(201).json(user);
 
     } catch (error) {
         next(error);
