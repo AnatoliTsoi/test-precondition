@@ -6,12 +6,12 @@ export async function seed(knex: Knex.Knex): Promise<void> {
     const users = [];
 
     for (let i = 0; i < 100; i++) {
-        const phoneNumber = 639980001 + i;
+        const phoneNumber = 890110000 + i;
         users.push({
             password: "Sample1231!",
             email: `test-precondition${phoneNumber}@mailslurp.biz`,
             phone_number: phoneNumber,
-            country_code: "+33", //France
+            country_code: "+353", //Ireland
             reserved: false,
             registered: false,
         });

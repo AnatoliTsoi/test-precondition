@@ -1,19 +1,14 @@
 import request from 'supertest';
 import app from '../../src/app';
-import {insertDefaultUser, insertLockedUser, setupDatabase, teardownDatabase} from '../../src/utils/database';
+import { insertLockedUser, setupDatabase} from '../../src/utils/database';
+
+const timeout = 20000;
 
 beforeAll(async () => {
     await setupDatabase();
 });
 
-afterAll(async () => {
-    await teardownDatabase();
-});
-
 describe('GET/user/data', () => {
-    beforeEach(async () => {
-        await insertDefaultUser();
-    });
 
     it('should respond with a 200 status code', async () => {
         const response = await request(app).get('/user/data');
@@ -53,12 +48,12 @@ describe('PATCH/user/unlock', () => {
 
 describe('GET/user/registered', () => {
     it('should respond with a 200 status code', async () => {
-        const response = await request(app)
+        const registerResponse = await request(app)
             .get('/user/registered?redCarpetConsent=true')
 
-        expect(response.status).toBe(200);
+        expect(registerResponse.status).toBe(200);
 
-        const user = response.body;
+        const user = registerResponse.body;
         expect(user).toHaveProperty('first_name');
         expect(user).toHaveProperty('last_name');
         expect(user).toHaveProperty('birth_date');
@@ -73,5 +68,10 @@ describe('GET/user/registered', () => {
         expect(user).toHaveProperty('country');
         expect(user).toHaveProperty('reserved', true);
         expect(user).toHaveProperty('registered', true);
-    });
+
+        const deleteResponse = await request(app)
+            .delete(`/user?email=${user.email}`)
+
+        expect(deleteResponse.status).toBe(204);
+    }, timeout);
 });
