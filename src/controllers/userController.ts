@@ -97,10 +97,9 @@ export async function removeUserHandler(
             return
         }
 
-        //let user: User | null = await userService.getUserByEmail(email);
+        let user: User | null = await userService.getUserByEmail(email);
 
         let nipClient: NipClient = new NipClient();
-
         const {memberId} = await nipClient.getCustomer(email);
 
         const deleteMemberResponse = await nipClient.deleteMember(memberId);
@@ -115,11 +114,14 @@ export async function removeUserHandler(
             }
         }
 
-
-        //DON't FORGET ABOUT CHANGING STATE IN DB
+        if (user?.id) {
+            user = await userService.updateUser(user.id, {reserved: false, registered: false});
+        } else {
+            //logg
+        }
 
         res.status(204).send({
-            message: "User removed"
+            message: `User with memberId - ${memberId} removed`
         });
     } catch (error) {
         next(error);
