@@ -13,26 +13,44 @@ export async function getUserHandler(
     next: NextFunction
 ): Promise<void> {
     try {
-        const { registered } = req.query;
         let user : User | null = await userService.getAvailableUser();
-
         if (!user) {
-            res.status(404).json({ message: "No available user" });
+            res.status(404).json({ message: "No users available" });
             return;
         }
 
         user = await userService.reserveUser(user.id)
-
-        const fakeData = generateFakeUserData();
+        const fakeData: object = generateFakeUserData();
         user = await userService.updateUser(user.id, fakeData);
+        res.status(200).json(user);
+    } catch (error) {
+        next(error);
+    }
+}
 
-        if (registered ==="true") {
-            const omniResponse = await OmniService.signUp(user);
-            user = await userService.updateUser(user.id, { registered: true, member_id: omniResponse.memberId });
+export async function registerUserHandler(
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> {
+    try {
+        const redCarpetConsent: boolean = req.query.redCarpetConsent === 'true';
+        let user : User | null = await userService.getAvailableUser();
+
+        if (!user) {
+            res.status(404).json({ message: "No users available" });
+            return;
         }
 
-        res.status(200).json(user);
+        user = await userService.reserveUser(user.id)
+        const fakeData: object = generateFakeUserData();
+        user = await userService.updateUser(user.id, fakeData);
 
+        const omniResponse = await OmniService.signUp(user, redCarpetConsent);
+
+        //here we should add member id logic
+
+        res.status(200).json(user);
     } catch (error) {
         next(error);
     }

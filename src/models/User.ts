@@ -9,7 +9,7 @@ export interface User {
     city?: string;
     password?: string;
     email: string;
-    phone_number: string;
+    phone_number: number;
     country_code: string;
     country?: string;
     member_id?: string;

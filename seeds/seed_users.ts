@@ -8,9 +8,9 @@ export async function seed(knex: Knex.Knex): Promise<void> {
     for (let i = 0; i < 100; i++) {
         const phoneNumber = 639980001 + i;
         users.push({
-            password: "Sample123!",
+            password: "Sample1231!",
             email: `test-precondition${phoneNumber}@mailslurp.biz`,
-            phone_number: phoneNumber.toString(),
+            phone_number: phoneNumber,
             country_code: "+33", //France
             reserved: false,
             registered: false,

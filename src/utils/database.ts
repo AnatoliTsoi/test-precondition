@@ -1,4 +1,5 @@
-import { knex } from '../../src/models/db';
+import { knex } from '../models/db';
+import { seed } from '../../seeds/seed_users';
 
 /**
  * Setup predictable test data:
@@ -8,7 +9,7 @@ import { knex } from '../../src/models/db';
 
 const defaultUser = {
     country_code: '+49',
-    phone_number: '123456789',
+    phone_number: 123456789,
     email: 'integration-tests@test-precondition.se',
     reserved: false,
     registered: false
@@ -16,7 +17,7 @@ const defaultUser = {
 
 const reservedUser = {
     country_code: '+49',
-    phone_number: '123456789',
+    phone_number: 123456789,
     email: 'integration-tests@test-precondition.se',
     reserved: true,
     registered: false
@@ -24,6 +25,7 @@ const reservedUser = {
 
 export async function setupDatabase(): Promise<void> {
     await knex('users').del();
+    await seed(knex);
 }
 
 export async function insertDefaultUser(): Promise<void> {

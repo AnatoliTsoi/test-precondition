@@ -13,7 +13,6 @@ export function generateFakeUserData() {
         address: faker.location.streetAddress(),
         zip_code: faker.location.zipCode(),
         city: faker.location.city(),
-        country_code: faker.location.countryCode(),
-        country: faker.location.country(),
+        country: "SE"
     };
 }
