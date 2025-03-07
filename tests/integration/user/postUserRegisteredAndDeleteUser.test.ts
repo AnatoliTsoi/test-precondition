@@ -3,8 +3,6 @@ import app from '../../../src/app'
 import {setupDatabase, teardownDatabase} from "../../setUp/setUpDatabase";
 
 
-const timeout = 20000;
-
 beforeAll(async () => {
     await setupDatabase();
 });
@@ -42,7 +40,7 @@ describe('POST /user/registered', () => {
             reserved: true,
             registered: true
         });
-    }, timeout);
+    });
 
     it('should delete the registered user', async () => {
         if (!userEmail) {

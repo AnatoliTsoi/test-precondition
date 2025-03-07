@@ -1,17 +1,7 @@
 import { knex } from '../../src/models/db';
 import { seed } from '../../seeds/seed_users';
 
-const defaultUser = {
-    id: 1,
-    country_code: '+49',
-    phone_number: 123456789,
-    email: 'integration-tests@test-precondition.se',
-    reserved: false,
-    registered: false
-};
-
-const reservedUser = {
-    id: 2,
+export const reservedUser = {
     country_code: '+49',
     phone_number: 123456789,
     email: 'integration-tests@test-precondition.se',

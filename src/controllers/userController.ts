@@ -4,30 +4,34 @@ import {User} from "../models/User";
 import {generateFakeUserData} from "../utils/generateFakeUserData";
 import {OmniService} from "../services/external/omni/OmniService";
 import {NipClient} from "../services/external/nip/NipClient";
-import logger from '../utils/logger';
+import baseLogger from '../logging/logger';
+import {knex} from "../models/db";
 
 
 const userService = new UserService();
 const nipClient: NipClient = new NipClient();
 
-export async function getUserHandler(
+export async function getUserDataHandler(
     req: Request,
     res: Response,
     next: NextFunction
 ): Promise<void> {
     try {
-        let user: User | null = await userService.getAvailableUser();
-        if (!user) {
-            logger.warn('No available user found');
-            res.status(404).json({message: "No users available"});
-            return;
-        }
+        await knex.transaction(async (trx) => {
+            let user: User | null = await userService.getAvailableUser();
 
-        user = await userService.reserveUser(user.id)
-        const fakeData: object = generateFakeUserData();
-        user = await userService.updateUser(user.id, fakeData);
-        res.status(200).json(user);
+            if (!user) {
+                res.status(404).json({message: "No users available"});
+                return;
+            }
+
+            user = await userService.reserveUser(user.id)
+            const fakeData: object = generateFakeUserData();
+            user = await userService.updateUser(user.id, fakeData);
+            res.status(200).json(user);
+        });
     } catch (error) {
+        baseLogger.error("Error in getUserDataHandler", error);
         next(error);
     }
 }
@@ -39,24 +43,28 @@ export async function registerUserHandler(
 ): Promise<void> {
     try {
         const redCarpetConsent: boolean = req.query.redCarpetConsent === 'true';
-        let user: User | null = await userService.getAvailableUser();
 
-        if (!user) {
-            logger.warn("No users available");
-            res.status(404).json({message: "No users available"});
-            return;
-        }
+        await knex.transaction(async (trx) => {
+            let user: User | null = await userService.getAvailableUser(trx);
 
-        user = await userService.reserveUser(user.id)
-        const fakeData: object = generateFakeUserData();
-        user = await userService.updateUser(user.id, fakeData);
+            if (!user) {
+                res.status(404).json({message: "No users available"});
+                return;
+            }
 
-        const omniResponse = await OmniService.signUp(user, redCarpetConsent);
-        user = await userService.updateUser(user.id, {registered: true});
+            user = await userService.reserveUser(user.id, trx);
+            const fakeData: object = generateFakeUserData();
+            user = await userService.updateUser(user.id, fakeData, trx);
 
-        res.status(201).json(user);
+            await OmniService.signUp(user, redCarpetConsent);
+            user = await userService.updateUser(user.id, {registered: true}, trx);
+
+            res.status(201).json(user);
+            baseLogger.info(`User ${user.email} registered successfully`);
+        });
 
     } catch (error) {
+        baseLogger.error("Error in registerUserHandler", error);
         next(error);
     }
 }
@@ -68,24 +76,24 @@ export async function unlockUserHandler(
 ): Promise<void> {
     try {
         const {email} = req.body;
+        await knex.transaction(async (trx) => {
+            if (!email || typeof email !== "string") {
+                res.status(400).json({message: "Email query parameter of string is required"});
+                return
+            }
 
-        if (!email || typeof email !== "string") {
-            logger.warn(`Couldn't find a user with the email ${email}`);
-            res.status(400).json({message: "Email query parameter of string is required"});
-            return
-        }
+            let user: User | null = await userService.getUserByEmail(email);
+            if (!user?.reserved) {
+                res.status(400).json({message: "User is not reserved"});
+                return
+            }
 
-        let user: User | null = await userService.getUserByEmail(email);
-        if (!user?.reserved) {
-            logger.warn(`User with the email ${email} is not reserved`);
-            res.status(400).json({message: "User is not reserved"});
-            return
-        }
-
-        await userService.unlockUser(user.id);
-        logger.info(`Successfully unlocked user with email ${email}`);
-        res.status(204).send();
+            await userService.unlockUser(user.id);
+            res.status(204).send();
+            baseLogger.info(`Successfully unlocked user with email ${email}`);
+        });
     } catch (error) {
+        baseLogger.error("Error in unlockUserHandler", error);
         next(error);
     }
 }
@@ -98,42 +106,40 @@ export async function removeUserHandler(
     try {
         const {email} = req.query;
 
-        if (!email || typeof email !== "string") {
-            res.status(400).json({message: "Email query parameter of string is required"});
-            return
-        }
-
-        let user: User | null = await userService.getUserByEmail(email);
-        if (!user?.reserved) {
-            logger.warn(`User with email ${email} is not reserved`);
-            res.status(400).json({ message: "User is not reserved" });
-            return;
-        }
-
-        const {memberId} = await nipClient.getCustomer(email);
-
-        const deleteMemberResponse = await nipClient.deleteMember(memberId);
-
-        try {
-            const cicResponse =  await nipClient.deleteCicMember(memberId)
-        } catch (error: any) {
-            if (error.response.data === "User not found" && error.response.status === 404) {
-                //Do nothing
-            } else {
-                throw error;
+        await knex.transaction(async (trx) => {
+            if (!email || typeof email !== "string") {
+                res.status(400).json({message: "Email query parameter of string is required"});
+                return
             }
-        }
 
-        if (user?.id) {
-            user = await userService.updateUser(user.id, {reserved: false, registered: false});
-        } else {
-            //logg
-        }
+            let user: User | null = await userService.getUserByEmail(email);
+            const {memberId} = await nipClient.getCustomer(email);
 
-        res.status(204).send({
-            message: `User with memberId - ${memberId} removed`
+            await nipClient.deleteMember(memberId);
+
+            try {
+                await nipClient.deleteCicMember(memberId)
+            } catch (error: any) {
+                if (error.response.data === "User not found" && error.response.status === 404) {
+                    /**
+                     * User is registered in Cognito after first signing in, not signing up
+                     * 404 is expected since deleteMember() will trigger a webhook for deleting it from cognito as well
+                     * In some cases it doesn't happen though which is the reason of this call
+                     */
+                } else {
+                    throw error;
+                }
+            }
+
+            if (user?.id) {
+                await userService.updateUser(user.id, {reserved: false, registered: false});
+            }
+
+            res.status(204).send({message: `User with memberId - ${memberId} removed`});
+            baseLogger.info(`Successfully removed user with email ${email}`);
         });
     } catch (error) {
+        baseLogger.error("Error in removeUserHandler", error);
         next(error);
     }
 }

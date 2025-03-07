@@ -1,6 +1,9 @@
 import axios, { AxiosInstance } from "axios";
 import { User } from "../../../models/User";
-import {OmniSignUpRequestBody} from "./Models";
+import { OmniSignUpRequestBody } from "./Models";
+import { createLoggerForService } from "../../../logging/logger";
+
+const logger = createLoggerForService("OmniService");
 
 const omniApiClient: AxiosInstance = axios.create({
     baseURL: process.env.OMNI_BASE_URL,
@@ -15,7 +18,6 @@ const omniApiClient: AxiosInstance = axios.create({
 
 export const OmniService = {
     async signUp(user: User, redCarpetConsent: boolean): Promise<{ message: string }> {
-
         const requestBody: OmniSignUpRequestBody = {
             firstName: user.first_name,
             lastName: user.last_name,
@@ -37,10 +39,14 @@ export const OmniService = {
             redCarpetConsent: redCarpetConsent,
         };
 
+        logger.info(`Signing up user: ${user.email}`);
+
         try {
             const response = await omniApiClient.post("/member/signup", requestBody);
+            logger.info(`Successfully signed up user ${user.email}`);
             return { message: response.data.message };
-        } catch (error) {
+        } catch (error: any) {
+            logger.error(`Failed to sign up user ${user.email}: ${error.message}`, { error });
             throw error;
         }
     },

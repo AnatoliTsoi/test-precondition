@@ -4,7 +4,7 @@
   "description": "test-precondition is a service for satisfying preconditions for different test scenarios",
   "main": "index.js",
   "scripts": {
-    "test": "jest",
+    "test": "jest --runInBand",
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "ts-node src/index.ts"
