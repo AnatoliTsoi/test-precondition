@@ -31,7 +31,6 @@ export async function getUserDataHandler(
             res.status(200).json(user);
         });
     } catch (error) {
-        baseLogger.error("Error in getUserDataHandler", error);
         next(error);
     }
 }
@@ -64,7 +63,6 @@ export async function registerUserHandler(
         });
 
     } catch (error) {
-        baseLogger.error("Error in registerUserHandler", error);
         next(error);
     }
 }
@@ -93,7 +91,6 @@ export async function unlockUserHandler(
             baseLogger.info(`Successfully unlocked user with email ${email}`);
         });
     } catch (error) {
-        baseLogger.error("Error in unlockUserHandler", error);
         next(error);
     }
 }
@@ -139,7 +136,29 @@ export async function removeUserHandler(
             baseLogger.info(`Successfully removed user with email ${email}`);
         });
     } catch (error) {
-        baseLogger.error("Error in removeUserHandler", error);
         next(error);
     }
+}
+
+export function errorHandler(
+    err: any,
+    req: Request,
+    res: Response,
+    next: NextFunction
+) {
+    const statusCode = err.statusCode || 500;
+    const message = err.message || "Internal Server Error";
+
+    baseLogger.error("Unhandled error", {
+        method: req.method,
+        url: req.originalUrl,
+        status: statusCode,
+        message,
+        stack: err.stack || "No stack trace",
+    });
+
+    res.status(statusCode).json({
+        error: message,
+        statusCode,
+    });
 }

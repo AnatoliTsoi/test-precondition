@@ -6,7 +6,7 @@ const router = Router();
 router.patch("/user/data", getUserDataHandler);
 router.patch("/user/unlock", unlockUserHandler);
 router.post("/user/registered", registerUserHandler);
-router.delete("/user", removeUserHandler); //change
+router.delete("/user", removeUserHandler);
 
 
 export default router;
