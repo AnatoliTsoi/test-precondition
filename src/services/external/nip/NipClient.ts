@@ -79,8 +79,17 @@ export class NipClient {
             await this.cicService.delete(`${memberId}`);
             logger.info(`Successfully deleted member ${memberId} from Cognito`);
         } catch (error: any) {
-            logger.warn(`Failed to delete member ${memberId}: ${error.message} from Cognito`, { error });
-            throw error;
+            if (error.response.data === "User not found" && error.response.status === 404) {
+                /**
+                 * User is registered in Cognito after first signing in, not signing up
+                 * 404 is expected since deleteMember() will trigger a webhook for deleting it from cognito as well
+                 * In some cases it doesn't happen though which is the reason of this call
+                 */
+                logger.info(`Couldn't find member with ${memberId} in Cognito: ${error.message}`, { error });
+            } else {
+                logger.error(`Failed to delete member ${memberId}: ${error.message} from Cognito`, { error });
+                throw error;
+            }
         }
     }
 }

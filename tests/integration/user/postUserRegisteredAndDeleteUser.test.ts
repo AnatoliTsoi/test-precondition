@@ -38,7 +38,8 @@ describe('POST /user/registered', () => {
             country_code: expect.any(String),
             country: expect.any(String),
             reserved: true,
-            registered: true
+            registered: true,
+            member_id: expect.any(String)
         });
     });
 

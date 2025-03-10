@@ -56,7 +56,8 @@ export async function registerUserHandler(
             user = await userService.updateUser(user.id, fakeData, trx);
 
             await OmniService.signUp(user, redCarpetConsent);
-            user = await userService.updateUser(user.id, {registered: true}, trx);
+            const {memberId} = await nipClient.getCustomer(user.email);
+            user = await userService.updateUser(user.id, {registered: true, member_id: memberId}, trx);
 
             res.status(201).json(user);
             baseLogger.info(`User ${user.email} registered successfully`);
@@ -112,21 +113,13 @@ export async function removeUserHandler(
             let user: User | null = await userService.getUserByEmail(email);
             const {memberId} = await nipClient.getCustomer(email);
 
+            if (user?.member_id === null) {
+                user = await userService.updateUser(user.id, {member_id: memberId});
+            }
+
             await nipClient.deleteMember(memberId);
 
-            try {
-                await nipClient.deleteCicMember(memberId)
-            } catch (error: any) {
-                if (error.response.data === "User not found" && error.response.status === 404) {
-                    /**
-                     * User is registered in Cognito after first signing in, not signing up
-                     * 404 is expected since deleteMember() will trigger a webhook for deleting it from cognito as well
-                     * In some cases it doesn't happen though which is the reason of this call
-                     */
-                } else {
-                    throw error;
-                }
-            }
+            await nipClient.deleteCicMember(memberId)
 
             if (user?.id) {
                 await userService.updateUser(user.id, {reserved: false, registered: false});
