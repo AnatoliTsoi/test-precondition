@@ -81,7 +81,7 @@ export async function unlockUserHandler(
         await knex.transaction(async (trx) => {
             let user: User | null = await userService.getUserByEmail(email);
             if (!user?.reserved) {
-                res.status(400).json({message: "User is not reserved"});
+                res.status(409).json({message: "User is not reserved"});
                 return
             }
 
