@@ -6,6 +6,9 @@ import {OmniService} from "../services/external/omni/OmniService";
 import {NipClient} from "../services/external/nip/NipClient";
 import baseLogger from '../logging/logger';
 import {knex} from "../models/db";
+import {RegisterUserBody} from "../validators/userEndpoints/registerUser.schema";
+import {UnlockUserBody} from "../validators/userEndpoints/unlockUser.schema";
+import {DeleteUserBody} from "../validators/userEndpoints/deleteUser.schema";
 
 
 const userService = new UserService();
@@ -36,12 +39,12 @@ export async function getUserDataHandler(
 }
 
 export async function registerUserHandler(
-    req: Request,
+    req: Request<any, any, RegisterUserBody>,
     res: Response,
     next: NextFunction
 ): Promise<void> {
     try {
-        const redCarpetConsent: boolean = req.query.redCarpetConsent === 'true';
+        const {redCarpetConsent} = req.body;
 
         await knex.transaction(async (trx) => {
             let user: User | null = await userService.getAvailableUser(trx);
@@ -69,18 +72,13 @@ export async function registerUserHandler(
 }
 
 export async function unlockUserHandler(
-    req: Request,
+    req: Request<any, any, UnlockUserBody>,
     res: Response,
     next: NextFunction
 ): Promise<void> {
     try {
         const {email} = req.body;
         await knex.transaction(async (trx) => {
-            if (!email || typeof email !== "string") {
-                res.status(400).json({message: "Email query parameter of string is required"});
-                return
-            }
-
             let user: User | null = await userService.getUserByEmail(email);
             if (!user?.reserved) {
                 res.status(400).json({message: "User is not reserved"});
@@ -97,7 +95,7 @@ export async function unlockUserHandler(
 }
 
 export async function removeUserHandler(
-    req: Request,
+    req: Request<any, any, any, DeleteUserBody>,
     res: Response,
     next: NextFunction
 ): Promise<void> {
@@ -105,10 +103,6 @@ export async function removeUserHandler(
         const {email} = req.query;
 
         await knex.transaction(async (trx) => {
-            if (!email || typeof email !== "string") {
-                res.status(400).json({message: "Email query parameter of string is required"});
-                return
-            }
 
             let user: User | null = await userService.getUserByEmail(email);
             const {memberId} = await nipClient.getCustomer(email);

@@ -1,6 +1,7 @@
 import request from 'supertest';
 import app from '../../../src/app'
 import {setupDatabase, teardownDatabase} from "../../setUp/setUpDatabase";
+import {requestValidationErrorText} from "../../../src/middleware/validate";
 
 
 beforeAll(async () => {
@@ -52,5 +53,19 @@ describe('POST /user/registered', () => {
             .delete(`/user?email=${userEmail}`);
 
         expect(deleteResponse.status).toBe(204);
+    });
+
+    it('should return 400 if redCarpet is not set', async () => {
+        const registerResponse = await request(app)
+            .post('/user/registered')
+
+        expect(registerResponse.status).toBe(400);
+        expect(registerResponse.body.error).toBe(requestValidationErrorText);
+    });
+
+    it('should return 400 if email is not set', async () => {
+        const deleteResponse = await request(app).delete(`/user?`);
+        expect(deleteResponse.status).toBe(400);
+        expect(deleteResponse.body.error).toBe(requestValidationErrorText);
     });
 });

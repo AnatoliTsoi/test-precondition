@@ -89,7 +89,7 @@ export class UserService {
         if (!user) {
             logger.warn(`User not found by email: ${email}`);
         } else {
-            logger.info(`Found user ${user.id} by email: ${email}`);
+            logger.info(`Found user by email: ${email}`);
         }
 
         return user || null;
